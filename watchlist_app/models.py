@@ -1,6 +1,6 @@
 from unicodedata import name
 from django.db import models
-
+from django.core.validators import MinValueValidator,MaxValueValidator
 # Create your models here.
 
 class StreamPlatform(models.Model):
@@ -23,3 +23,14 @@ class WatchList(models.Model):
     
     def __str__(self):
         return self.title
+    
+class Reviews(models.Model):
+    rating = models.PositiveIntegerField(validators=[MinValueValidator(1),MaxValueValidator(10)])
+    description = models.CharField(max_length=200,null=True)
+    created = models.DateTimeField(auto_now_add=True)
+    update = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
+    watchlist = models.ForeignKey(WatchList,on_delete=models.CASCADE,blank=True, related_name="reviews")
+    
+    def __str__(self):
+        return str(self.rating) + " | " + self.watchlist.title
