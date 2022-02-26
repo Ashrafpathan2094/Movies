@@ -2,12 +2,14 @@ from watchlist_app.models import WatchList,StreamPlatform,Reviews
 from watchlist_app.api.serializers import (WatchListSerializer,StreamPlatformSerializer,
                                            ReviewsSerializer)
 
-
+from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 # from rest_framework import mixins
 from rest_framework import generics
+from django.shortcuts import get_object_or_404
+from rest_framework.exceptions import ValidationError
 
 
 class WatchListAV(APIView):
@@ -112,12 +114,20 @@ class ReviewList(generics.ListAPIView):
 class ReviewCreate(generics.CreateAPIView):
    
     serializer_class = ReviewsSerializer  
+    def get_queryset(self):
+        return Reviews.objects.all()
     
     def perform_create(self,serializer):
-        pk = self.kwargs['pk']
+        pk = self.kwargs.get('pk')
         watchlist = WatchList.objects.get(pk=pk)
-        serializer.save(watchlist=watchlist)          
-    
+        review_user = self.request.user
+        review_queryset = Reviews.objects.filter(watchlist=watchlist,review_user=review_user)
+        
+        if review_queryset.exists():
+            raise ValidationError("already a review")
+        serializer.save(watchlist = watchlist)
+        
+        
     
 
 class ReviewDetails(generics.RetrieveUpdateDestroyAPIView):
@@ -154,6 +164,13 @@ class ReviewDetails(generics.RetrieveUpdateDestroyAPIView):
 
 #     def delete(self, request, *args, **kwargs):
 #         return self.destroy(request, *args, **kwargs)
+
+
+
+class StreamPlatformVS(viewsets.ModelViewSet):
+    queryset = StreamPlatform.objects.all()
+    serializer_class = StreamPlatformSerializer
+    
 
 class StreamPlatformListAV(APIView):
     
