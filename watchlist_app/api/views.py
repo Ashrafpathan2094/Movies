@@ -1,6 +1,8 @@
 from watchlist_app.models import WatchList,StreamPlatform,Reviews
 from watchlist_app.api.serializers import (WatchListSerializer,StreamPlatformSerializer,
                                            ReviewsSerializer)
+from watchlist_app.api.permissions import AdminOrReadOnly,ReviewUserOrReadOnly
+
 
 from rest_framework import viewsets
 from rest_framework.response import Response
@@ -121,6 +123,7 @@ class ReviewCreate(generics.CreateAPIView):
         pk = self.kwargs.get('pk')
         watchlist = WatchList.objects.get(pk=pk)
         review_user = self.request.user
+        print(review_user)
         review_queryset = Reviews.objects.filter(watchlist=watchlist,review_user=review_user)
         
         if review_queryset.exists():
@@ -133,6 +136,8 @@ class ReviewCreate(generics.CreateAPIView):
 class ReviewDetails(generics.RetrieveUpdateDestroyAPIView):
     queryset = Reviews.objects.all()
     serializer_class = ReviewsSerializer
+    
+    permission_classes = [ReviewUserOrReadOnly]
 
 
 
