@@ -12,6 +12,7 @@ from rest_framework import status
 from rest_framework import generics
 from django.shortcuts import get_object_or_404
 from rest_framework.exceptions import ValidationError
+from rest_framework.permissions import IsAuthenticated
 
 
 class WatchListAV(APIView):
@@ -109,6 +110,8 @@ class ReviewList(generics.ListAPIView):
     # queryset = Reviews.objects.all()
     serializer_class = ReviewsSerializer
     
+    permission_classes = [IsAuthenticated]
+    
     def get_queryset(self):
         pk = self.kwargs['pk']
         return Reviews.objects.filter(watchlist=pk)
@@ -123,7 +126,6 @@ class ReviewCreate(generics.CreateAPIView):
         pk = self.kwargs.get('pk')
         watchlist = WatchList.objects.get(pk=pk)
         review_user = self.request.user
-        print(review_user)
         review_queryset = Reviews.objects.filter(watchlist=watchlist,review_user=review_user)
         
         if review_queryset.exists():
